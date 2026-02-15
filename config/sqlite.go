@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"opportunities/schemas"
 	"os"
 
@@ -15,7 +16,8 @@ func InitializeSQLite() (*gorm.DB, error) {
 
 	_, err := os.Stat(dbPath)
 	if os.IsNotExist(err) {
-		logger.Info("Creating new sqlite database")
+		logger.Info("database file not found, creating a new one", slog.String("path", dbPath))
+
 		err := os.MkdirAll("./db", os.ModePerm)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create database directory: %w", err)
@@ -34,15 +36,16 @@ func InitializeSQLite() (*gorm.DB, error) {
 
 	db, err := gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
-		logger.Errorf("Error opening SQLite database: %v", err)
+		logger.Error("failed to open sqlite database", slog.Any("error", err))
 		return nil, fmt.Errorf("failed to open sqlite database: %w", err)
 	}
 
 	err = db.AutoMigrate(&schemas.Openings{})
 	if err != nil {
-		logger.Errorf("Error auto-migrating SQLite database: %v", err)
+		logger.Error("sqlite auto-migration failed", slog.Any("error", err))
 		return nil, fmt.Errorf("failed to auto-migrate database: %w", err)
 	}
 
+	logger.Info("sqlite database initialized and migrated successfully")
 	return db, nil
 }

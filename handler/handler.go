@@ -1,18 +1,18 @@
 package handler
 
 import (
-	"opportunities/config"
+	"log/slog"
 	"opportunities/repository"
 )
 
 type OpeningHandler struct {
-	logger *config.Logger
+	logger *slog.Logger
 	repo   repository.OpeningRepository
 }
 
 func New(repo repository.OpeningRepository) *OpeningHandler {
 	return &OpeningHandler{
-		logger: config.GetLogger("handler"),
+		logger: slog.Default().With("group", "handler"),
 		repo:   repo,
 	}
 }

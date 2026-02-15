@@ -1,16 +1,16 @@
 package main
 
 import (
+	"log/slog"
 	"opportunities/config"
 	"opportunities/router"
 )
 
 func main() {
 	err := config.Init()
-	logger := config.GetLogger("main")
 
 	if err != nil {
-		logger.Errorf("Error initializing config: %v", err)
+		slog.Error("Error initializing config", slog.String("error", err.Error()))
 		return
 	}
 

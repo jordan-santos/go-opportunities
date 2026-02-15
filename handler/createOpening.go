@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log/slog"
 	"net/http"
 	"opportunities/schemas"
 
@@ -26,12 +27,12 @@ func (h *OpeningHandler) CreateOpeningHandler(c *gin.Context) {
 
 	err := c.BindJSON(&request)
 	if err != nil {
-		h.logger.Errorf("binding request error: %s", err)
+		h.logger.Error("binding request", slog.String("error", err.Error()))
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		h.logger.Errorf("validation error: %v", err)
+		h.logger.Error("validation ", slog.String("error", err.Error()))
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -46,7 +47,7 @@ func (h *OpeningHandler) CreateOpeningHandler(c *gin.Context) {
 	}
 
 	if err := h.repo.Create(&opening); err != nil {
-		h.logger.Errorf("create db error: %s", err.Error())
+		h.logger.Error("create db ", slog.String("error", err.Error()))
 		sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}

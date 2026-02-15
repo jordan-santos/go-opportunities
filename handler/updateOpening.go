@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -27,13 +28,13 @@ func (h *OpeningHandler) UpdateOpeningHandler(c *gin.Context) {
 
 	err := c.BindJSON(&request)
 	if err != nil {
-		h.logger.Errorf("UpdateOpeningHandler parse request body failed: %v", err)
+		h.logger.Error("UpdateOpeningHandler parse request body", slog.String("error", err.Error()))
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		h.logger.Errorf("UpdateOpeningHandler validate request failed: %v", err)
+		h.logger.Error("UpdateOpeningHandler validate request", slog.String("error", err.Error()))
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -75,7 +76,7 @@ func (h *OpeningHandler) UpdateOpeningHandler(c *gin.Context) {
 	}
 
 	if err := h.repo.Update(&opening); err != nil {
-		h.logger.Errorf("UpdateOpeningHandler save opening failed: %v", err.Error())
+		h.logger.Error("UpdateOpeningHandler save opening", slog.String("error", err.Error()))
 		sendError(c, http.StatusInternalServerError, err.Error())
 	}
 
