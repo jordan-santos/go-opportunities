@@ -7,6 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @BasePath /api/v1
+
+// CreateOpeningHandler godoc
+// @Summary CreateOpening
+// @Schemes
+// @Description Create an Opening
+// @Tags Opening
+// @Accept json
+// @Produce json
+// @Param request body CreateOpeningRequest true "Request Body"
+// @Success 200 {object} CreateOpeningResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /opening [post]
 func CreateOpeningHandler(c *gin.Context) {
 	request := CreateOpeningRequest{}
 
