@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"opportunities/internal/auth"
+	"opportunities/internal/middleware"
 	"opportunities/internal/repository"
 	"opportunities/internal/schemas"
 	"testing"
@@ -14,31 +16,51 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCreateOpeningHandler(t *testing.T) {
+func TestCreateOpeningHandler_WithAuth(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	t.Run("Should return 200 when creating a valid opening", func(t *testing.T) {
-		mockRepo := new(repository.OpeningRepositoryMock)
-		h := New(mockRepo)
+	mockRepo := new(repository.OpeningRepositoryMock)
+	h := New(mockRepo)
 
-		input := schemas.Openings{
-			Role:     "Go Developer",
-			Company:  "Google",
-			Location: "Remote",
-			Link:     "https://google.com",
-			Remote:   true,
-			Salary:   15000,
-		}
-		body, _ := json.Marshal(input)
+	r := gin.Default()
+	r.Use(middleware.Auth())
+	r.POST("/opening", h.CreateOpeningHandler)
 
-		mockRepo.On("Create", mock.AnythingOfType("*schemas.Openings")).Return(nil)
+	input := schemas.Openings{
+		Role:     "Go Developer",
+		Company:  "Google",
+		Location: "USA",
+		Remote:   true,
+		Link:     "https://google.com",
+		Salary:   15000,
+	}
+	body, _ := json.Marshal(input)
+
+	t.Run("Should return 401 Unauthorized when token is missing", func(t *testing.T) {
+		req, _ := http.NewRequest("POST", "/opening", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
 
 		recorder := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(recorder)
-		ctx.Request, _ = http.NewRequest("POST", "/opening", bytes.NewBuffer(body))
-		ctx.Request.Header.Set("Content-Type", "application/json")
 
-		h.CreateOpeningHandler(ctx)
+		r.ServeHTTP(recorder, req)
+
+		assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+
+		mockRepo.AssertNotCalled(t, "Create")
+	})
+
+	t.Run("Should return 200 Created when token is valid", func(t *testing.T) {
+		token, _ := auth.GenerateToken("test@test.com")
+
+		req, _ := http.NewRequest("POST", "/opening", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+
+		recorder := httptest.NewRecorder()
+
+		mockRepo.On("Create", mock.AnythingOfType("*schemas.Openings")).Return(nil).Once()
+
+		r.ServeHTTP(recorder, req)
 
 		assert.Equal(t, http.StatusOK, recorder.Code)
 		mockRepo.AssertExpectations(t)
