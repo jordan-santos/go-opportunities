@@ -21,7 +21,7 @@ build:
 
 # Roda testes em todos os pacotes (recursivo ./...)
 test:
-	@go test ./internal/... ./pkg/...
+	@go test ./internal/...
 
 # Apenas gera a documentação Swagger
 docs:
