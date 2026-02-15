@@ -3,6 +3,7 @@ package router
 import (
 	"opportunities/docs"
 	"opportunities/internal/handler"
+	"opportunities/internal/middleware"
 	"opportunities/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -18,13 +19,20 @@ func initializeRoutes(router *gin.Engine, db *gorm.DB) {
 	basePath := "/api/v1"
 	docs.SwaggerInfo.BasePath = basePath
 
-	v1 := router.Group(basePath)
+	router.POST(basePath+"/login", h.LoginHandler)
+
+	v1Public := router.Group(basePath)
 	{
-		v1.GET("/opening", h.ShowOpeningHandler)
-		v1.POST("/opening", h.CreateOpeningHandler)
-		v1.PUT("/opening", h.UpdateOpeningHandler)
-		v1.DELETE("/opening", h.DeleteOpeningHandler)
-		v1.GET("/openings", h.ListOpeningHandler)
+		v1Public.GET("/opening", h.ShowOpeningHandler)
+		v1Public.GET("/openings", h.ListOpeningHandler)
+	}
+
+	v1Protected := router.Group(basePath)
+	v1Protected.Use(middleware.Auth())
+	{
+		v1Protected.POST("/opening", h.CreateOpeningHandler)
+		v1Protected.PUT("/opening", h.UpdateOpeningHandler)
+		v1Protected.DELETE("/opening", h.DeleteOpeningHandler)
 	}
 
 	// swagger

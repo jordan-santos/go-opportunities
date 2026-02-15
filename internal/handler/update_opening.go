@@ -22,6 +22,7 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
+// @Security BearerAuth
 // @Router /opening [put]
 func (h *OpeningHandler) UpdateOpeningHandler(c *gin.Context) {
 	request := UpdateOpeningRequest{}

@@ -20,6 +20,7 @@ import (
 // @Success 200 {object} DeleteOpeningResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
+// @Security BearerAuth
 // @Router /opening [delete]
 func (h *OpeningHandler) DeleteOpeningHandler(c *gin.Context) {
 	id := c.Query("id")
