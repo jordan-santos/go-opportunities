@@ -8,6 +8,7 @@ Uma API REST robusta e performática desenvolvida em Go para o gerenciamento de 
 * **Web Framework:** [Gin Gonic](https://github.com/gin-gonic/gin) (Alta performance)
 * **ORM:** [GORM](https://gorm.io/) (Abstração de banco de dados)
 * **Banco de Dados:** SQLite (Persistência local)
+* **Segurança:** JWT (JSON Web Tokens) para proteção de rotas
 * **Documentação:** [Swagger](https://swaggo.github.io/swag/) (Interface interativa)
 * **Logging:** `slog` (Structured Logging nativo do Go)
 * **Testes:** [Testify](https://github.com/stretchr/testify) (Asserções e Mocks)
@@ -22,11 +23,13 @@ A aplicação utiliza o **Repository Pattern**, permitindo que a lógica de neg�
 ├── cmd/
 │   └── server/         # Ponto de entrada (Main)
 ├── internal/           # Código privado da aplicação
+│   ├── auth/           # Lógica de geração e validação de tokens JWT
 │   ├── handler/        # Camada de transporte (HTTP Handlers)
+│   ├── middleware/     # Interceptadores (ex: Autenticação)
 │   ├── repository/     # Camada de persistência (Interfaces e GORM)
-│   ├── router/         # Configuração de rotas e middlewares
+│   ├── router/         # Configuração de rotas
 │   └── schemas/        # Modelos de dados e entidades
-├── config/             # Configurações globais e inicialização (slog, db)
+├── config/             # Configurações globais e inicialização
 ├── docs/               # Documentação Swagger auto-gerada
 ├── db/                 # Arquivos de dados do SQLite
 ├── Dockerfile          # Build otimizado para produção
@@ -55,27 +58,39 @@ make docker-build
 make docker-run
 ```
 
+## 🔐 Segurança e Autenticação (JWT)
+
+As rotas de mutação de dados (criação, atualização e deleção) são protegidas por um **Middleware de Autenticação** via JWT.
+
+Para testar essas rotas:
+1. Faça uma requisição `POST` para `/api/v1/login` utilizando as credenciais de teste:
+    * **Email:** `admin@admin.com`
+    * **Password:** `123456`
+2. Copie o `token` retornado.
+3. No Swagger, clique no botão **Authorize**, digite `Bearer SEU_TOKEN_AQUI` e confirme.
+
 ## 🧪 Testes Automatizados
 
-Garantimos a qualidade através de testes unitários com Mocks, cobrindo os principais fluxos dos Handlers.
+Garantimos a qualidade através de testes unitários com Mocks, cobrindo os principais fluxos dos Handlers e validando o comportamento do Middleware de Autenticação.
 ```bash
 make test
 ```
 
 ## 📚 Documentação da API
 
-A documentação interativa (Swagger) permite testar os endpoints diretamente pelo navegador:
+A documentação interativa permite testar os endpoints diretamente pelo navegador:
 `http://localhost:8080/swagger/index.html`
 
 ## 📝 Principais Endpoints
 
-| Método | Endpoint | Descrição |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/opening` | Cria uma nova oportunidade de emprego. |
-| `GET` | `/api/v1/opening` | Busca uma vaga específica por ID. |
-| `PUT` | `/api/v1/opening` | Atualiza os dados de uma vaga existente. |
-| `DELETE` | `/api/v1/opening` | Remove uma vaga do sistema. |
-| `GET` | `/api/v1/openings` | Lista todas as vagas cadastradas. |
+| Método | Endpoint | Protegido 🔒 | Descrição |
+| :--- | :--- | :---: | :--- |
+| `POST` | `/api/v1/login` | Não | Autentica o usuário e retorna o token JWT. |
+| `POST` | `/api/v1/opening` | Sim | Cria uma nova oportunidade de emprego. |
+| `GET` | `/api/v1/opening` | Não | Busca uma vaga específica por ID. |
+| `PUT` | `/api/v1/opening` | Sim | Atualiza os dados de uma vaga existente. |
+| `DELETE` | `/api/v1/opening` | Sim | Remove uma vaga do sistema. |
+| `GET` | `/api/v1/openings` | Não | Lista todas as vagas cadastradas. |
 
 ## ⚙️ Variáveis e Configurações
 
