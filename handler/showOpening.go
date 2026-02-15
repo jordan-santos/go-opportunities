@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"opportunities/schemas"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +20,7 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Router /opening [get]
-func ShowOpeningHandler(c *gin.Context) {
+func (h *OpeningHandler) ShowOpeningHandler(c *gin.Context) {
 	id := c.Query("id")
 	if id == "" {
 		sendError(c, http.StatusBadRequest,
@@ -29,8 +28,8 @@ func ShowOpeningHandler(c *gin.Context) {
 		return
 	}
 
-	opening := schemas.Openings{}
-	if err := db.First(&opening, id).Error; err != nil {
+	opening, err := h.repo.Get(id)
+	if err != nil {
 		sendError(c, http.StatusNotFound, fmt.Sprintf("opening %s not found", id))
 		return
 	}

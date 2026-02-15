@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"opportunities/schemas"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +21,7 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /opening [delete]
-func DeleteOpeningHandler(c *gin.Context) {
+func (h *OpeningHandler) DeleteOpeningHandler(c *gin.Context) {
 	id := c.Query("id")
 	if id == "" {
 		sendError(c, http.StatusBadRequest,
@@ -30,17 +29,11 @@ func DeleteOpeningHandler(c *gin.Context) {
 		return
 	}
 
-	opening := schemas.Openings{}
-	if err := db.First(&opening, id).Error; err != nil {
-		sendError(c, http.StatusNotFound, fmt.Sprintf("opening %s not found", id))
-		return
-	}
-
-	if err := db.Delete(&opening).Error; err != nil {
+	if err := h.repo.Delete(id).Error; err != nil {
 		sendError(c, http.StatusInternalServerError,
 			fmt.Sprintf("error deleting opening %s", id))
 		return
 	}
 
-	sendSuccess(c, "deleteOpening", opening)
+	sendSuccess(c, "deleteOpening", id)
 }

@@ -2,16 +2,17 @@ package handler
 
 import (
 	"opportunities/config"
-
-	"gorm.io/gorm"
+	"opportunities/repository"
 )
 
-var (
+type OpeningHandler struct {
 	logger *config.Logger
-	db     *gorm.DB
-)
+	repo   repository.OpeningRepository
+}
 
-func InitializeHandler() {
-	logger = config.GetLogger("handler")
-	db = config.GetSQLite()
+func New(repo repository.OpeningRepository) *OpeningHandler {
+	return &OpeningHandler{
+		logger: config.GetLogger("handler"),
+		repo:   repo,
+	}
 }

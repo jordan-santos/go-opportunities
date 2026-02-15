@@ -5,18 +5,16 @@ import (
 	"opportunities/router"
 )
 
-var (
-	logger *config.Logger
-)
-
 func main() {
-	logger = config.GetLogger("main")
-
 	err := config.Init()
+	logger := config.GetLogger("main")
+
 	if err != nil {
 		logger.Errorf("Error initializing config: %v", err)
 		return
 	}
 
-	router.Initialize()
+	db := config.GetSQLite()
+
+	router.Initialize(db)
 }

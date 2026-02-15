@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
-	"opportunities/schemas"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,18 +22,18 @@ import (
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /opening [put]
-func UpdateOpeningHandler(c *gin.Context) {
+func (h *OpeningHandler) UpdateOpeningHandler(c *gin.Context) {
 	request := UpdateOpeningRequest{}
 
 	err := c.BindJSON(&request)
 	if err != nil {
-		logger.Errorf("UpdateOpeningHandler parse request body failed: %v", err)
+		h.logger.Errorf("UpdateOpeningHandler parse request body failed: %v", err)
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		logger.Errorf("UpdateOpeningHandler validate request failed: %v", err)
+		h.logger.Errorf("UpdateOpeningHandler validate request failed: %v", err)
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -44,9 +44,9 @@ func UpdateOpeningHandler(c *gin.Context) {
 		return
 	}
 
-	opening := schemas.Openings{}
-	if err := db.First(&opening, id).Error; err != nil {
-		sendError(c, http.StatusBadRequest, "opening not found")
+	opening, err := h.repo.Get(id)
+	if err != nil {
+		sendError(c, http.StatusNotFound, fmt.Sprintf("opening %s not found", id))
 		return
 	}
 
@@ -74,8 +74,8 @@ func UpdateOpeningHandler(c *gin.Context) {
 		opening.Salary = request.Salary
 	}
 
-	if err := db.Save(&opening).Error; err != nil {
-		logger.Errorf("UpdateOpeningHandler save opening failed: %v", err)
+	if err := h.repo.Update(&opening); err != nil {
+		h.logger.Errorf("UpdateOpeningHandler save opening failed: %v", err.Error())
 		sendError(c, http.StatusInternalServerError, err.Error())
 	}
 

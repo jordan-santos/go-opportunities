@@ -21,17 +21,17 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /opening [post]
-func CreateOpeningHandler(c *gin.Context) {
+func (h *OpeningHandler) CreateOpeningHandler(c *gin.Context) {
 	request := CreateOpeningRequest{}
 
 	err := c.BindJSON(&request)
 	if err != nil {
-		logger.Errorf("binding request error: %s", err)
+		h.logger.Errorf("binding request error: %s", err)
 		return
 	}
 
 	if err := request.Validate(); err != nil {
-		logger.Errorf("validation error: %v", err)
+		h.logger.Errorf("validation error: %v", err)
 		sendError(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -45,8 +45,8 @@ func CreateOpeningHandler(c *gin.Context) {
 		Salary:   request.Salary,
 	}
 
-	if err := db.Create(&opening).Error; err != nil {
-		logger.Errorf("create db error: %s", err)
+	if err := h.repo.Create(&opening); err != nil {
+		h.logger.Errorf("create db error: %s", err.Error())
 		sendError(c, http.StatusInternalServerError, err.Error())
 		return
 	}

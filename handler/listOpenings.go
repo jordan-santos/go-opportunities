@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"opportunities/schemas"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,10 +17,9 @@ import (
 // @Success 200 {object} ListOpeningsResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /openings [get]
-func ListOpeningHandler(c *gin.Context) {
-	openings := []schemas.Openings{}
-
-	if err := db.Find(&openings).Error; err != nil {
+func (h *OpeningHandler) ListOpeningHandler(c *gin.Context) {
+	openings, err := h.repo.List()
+	if err != nil {
 		sendError(c, http.StatusInternalServerError, "error getting openings")
 		return
 	}

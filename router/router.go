@@ -1,11 +1,14 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
 
-func Initialize() {
+func Initialize(db *gorm.DB) {
 	router := gin.Default()
 
-	initializeRoutes(router)
+	initializeRoutes(router, db)
 
 	err := router.Run(":8080")
 
