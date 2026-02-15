@@ -2,7 +2,7 @@ package handler
 
 import (
 	"log/slog"
-	"opportunities/repository"
+	"opportunities/internal/repository"
 )
 
 type OpeningHandler struct {

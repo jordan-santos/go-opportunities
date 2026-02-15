@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"opportunities/schemas"
+	"opportunities/internal/schemas"
 
 	"gorm.io/gorm"
 )

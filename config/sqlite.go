@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"log/slog"
-	"opportunities/schemas"
+	"opportunities/internal/schemas"
 	"os"
 
 	"github.com/glebarez/sqlite"

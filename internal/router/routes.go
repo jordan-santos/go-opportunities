@@ -2,8 +2,8 @@ package router
 
 import (
 	"opportunities/docs"
-	"opportunities/handler"
-	"opportunities/repository"
+	"opportunities/internal/handler"
+	"opportunities/internal/repository"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

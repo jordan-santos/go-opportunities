@@ -3,7 +3,7 @@ package main
 import (
 	"log/slog"
 	"opportunities/config"
-	"opportunities/router"
+	"opportunities/internal/router"
 )
 
 func main() {

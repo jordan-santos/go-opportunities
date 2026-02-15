@@ -3,7 +3,7 @@ package handler
 import (
 	"log/slog"
 	"net/http"
-	"opportunities/schemas"
+	"opportunities/internal/schemas"
 
 	"github.com/gin-gonic/gin"
 )
