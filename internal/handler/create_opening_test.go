@@ -20,7 +20,7 @@ func TestCreateOpeningHandler_WithAuth(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	mockRepo := new(repository.OpeningRepositoryMock)
-	h := New(mockRepo)
+	h := New(mockRepo, nil)
 
 	r := gin.Default()
 	r.Use(middleware.Auth())

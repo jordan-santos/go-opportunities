@@ -62,3 +62,13 @@ type UpdateOpeningResponse struct {
 	Message string          `json:"message"`
 	Data    openingResponse `json:"data"`
 }
+
+type openingCSVAcceptedData struct {
+	RequestID string `json:"request_id"`
+	Status    string `json:"status"`
+}
+
+type OpeningCSVAcceptedResponse struct {
+	Message string                 `json:"message"`
+	Data    openingCSVAcceptedData `json:"data"`
+}

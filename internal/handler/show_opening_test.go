@@ -50,7 +50,7 @@ func TestShowOpeningHandler_Table(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRepo := new(repository.OpeningRepositoryMock)
 			tt.mockBehavior(mockRepo)
-			h := New(mockRepo)
+			h := New(mockRepo, nil)
 
 			recorder := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(recorder)

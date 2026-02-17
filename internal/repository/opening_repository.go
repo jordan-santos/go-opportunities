@@ -8,6 +8,8 @@ import (
 
 type OpeningRepository interface {
 	Create(opening *schemas.Openings) error
+	CreateWithTx(tx *gorm.DB, opening *schemas.Openings) error
+	BeginTx() (*gorm.DB, error)
 	Get(id string) (schemas.Openings, error)
 	Delete(id string) error
 	Update(opening *schemas.Openings) error
@@ -24,6 +26,19 @@ func New(db *gorm.DB) OpeningRepository {
 
 func (r *sqliteRepository) Create(opening *schemas.Openings) error {
 	return r.db.Create(opening).Error
+}
+
+func (r *sqliteRepository) CreateWithTx(tx *gorm.DB, opening *schemas.Openings) error {
+	return tx.Create(opening).Error
+}
+
+func (r *sqliteRepository) BeginTx() (*gorm.DB, error) {
+	tx := r.db.Begin()
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return tx, nil
 }
 
 func (r *sqliteRepository) Get(id string) (schemas.Openings, error) {
