@@ -6,13 +6,14 @@ Uma API REST robusta e performática desenvolvida em Go para o gerenciamento de 
 
 * **Linguagem:** Go 1.26
 * **Web Framework:** [Gin Gonic](https://github.com/gin-gonic/gin) (Alta performance)
-* **ORM:** [GORM](https://gorm.io/) (Abstração de banco de dados)
-* **Banco de Dados:** SQLite (Persistência local)
+* **Persistência:** SQLite com [GORM](https://gorm.io/)
 * **Segurança:** JWT (JSON Web Tokens) para proteção de rotas
+* **Mensageria:** Apache Kafka com [kafka-go](https://github.com/segmentio/kafka-go) (feedback do processamento CSV)
+* **Processamento de CSV:** pipeline assíncrono com fila em memória e worker dedicado
 * **Documentação:** [Swagger](https://swaggo.github.io/swag/) (Interface interativa)
 * **Logging:** `slog` (Structured Logging nativo do Go)
 * **Testes:** [Testify](https://github.com/stretchr/testify) (Asserções e Mocks)
-* **Containerização:** Docker (Otimizado com Multi-stage builds)
+* **Containerização:** Docker (multi-stage build) e Docker Compose (API + Kafka + Zookeeper)
 
 ## 🏗️ Estrutura do Projeto
 
@@ -24,16 +25,20 @@ A aplicação utiliza o **Repository Pattern**, permitindo que a lógica de neg�
 │   └── server/         # Ponto de entrada (Main)
 ├── internal/           # Código privado da aplicação
 │   ├── auth/           # Lógica de geração e validação de tokens JWT
+│   ├── csv/            # Parser e validação de arquivos CSV
 │   ├── handler/        # Camada de transporte (HTTP Handlers)
+│   ├── messaging/      # Integração com Kafka (producer de feedback)
 │   ├── middleware/     # Interceptadores (ex: Autenticação)
 │   ├── repository/     # Camada de persistência (Interfaces e GORM)
 │   ├── router/         # Configuração de rotas
-│   └── schemas/        # Modelos de dados e entidades
+│   ├── schemas/        # Modelos de dados e entidades
+│   └── service/        # Regras de negócio e processamento assíncrono
 ├── config/             # Configurações globais e inicialização
 ├── docs/               # Documentação Swagger auto-gerada
 ├── db/                 # Arquivos de dados do SQLite
+├── docker-compose.yml  # Ambiente local com API + Kafka + Zookeeper
 ├── Dockerfile          # Build otimizado para produção
-└── Makefile            # Automação de tarefas (Build, Run, Test)
+└── makefile            # Automação de tarefas (Build, Run, Test)
 ```
 
 ## 🚀 Como Executar
@@ -48,15 +53,24 @@ make run-with-docs
 ```
 
 ### Execução via Docker
-O projeto utiliza **Multi-stage build**, gerando uma imagem final extremamente leve (aprox. 20MB).
+
+#### Opção 1: somente API (imagem Docker)
 1. Construa a imagem:
 ```bash
 make docker-build
 ```
-2. Inicie o container com persistência de dados:
+2. Inicie o container da API:
 ```bash
 make docker-run
 ```
+
+#### Opção 2 (recomendada): stack completa com Kafka
+Para executar API + Kafka + Zookeeper:
+```bash
+docker compose up --build
+```
+
+Esse fluxo usa o volume nomeado `db_data` para persistência do SQLite no serviço `api`.
 
 ## 🔐 Segurança e Autenticação (JWT)
 
@@ -87,10 +101,51 @@ A documentação interativa permite testar os endpoints diretamente pelo navegad
 | :--- | :--- | :---: | :--- |
 | `POST` | `/api/v1/login` | Não | Autentica o usuário e retorna o token JWT. |
 | `POST` | `/api/v1/opening` | Sim | Cria uma nova oportunidade de emprego. |
+| `POST` | `/api/v1/opening/csv` | Sim | Faz upload de um CSV e agenda o processamento assíncrono das vagas. |
 | `GET` | `/api/v1/opening` | Não | Busca uma vaga específica por ID. |
 | `PUT` | `/api/v1/opening` | Sim | Atualiza os dados de uma vaga existente. |
 | `DELETE` | `/api/v1/opening` | Sim | Remove uma vaga do sistema. |
 | `GET` | `/api/v1/openings` | Não | Lista todas as vagas cadastradas. |
+
+## 📥 Importação de vagas via CSV
+
+Endpoint: `POST /api/v1/opening/csv` (protegido por JWT)
+
+- Content-Type: `multipart/form-data`
+- Campo obrigatório: `file`
+- Processamento: assíncrono (retorna `request_id`)
+
+### Cabeçalho esperado do CSV
+
+```csv
+role,company,location,remote,link,salary
+```
+
+### Exemplo de requisição
+
+```bash
+curl -X POST http://localhost:8080/api/v1/opening/csv \
+  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  -F "file=@openings.csv"
+```
+
+### Exemplo de resposta de aceite (`202`)
+
+```json
+{
+  "message": "openingCsvAccepted",
+  "data": {
+    "request_id": "f0ea7a8e-9e1d-4fd7-9ceb-5c6c9a95a2e8",
+    "status": "accepted"
+  }
+}
+```
+
+### Possíveis respostas de erro
+
+- `400`: arquivo ausente/inválido ou cabeçalho CSV inválido.
+- `401`: token JWT ausente ou inválido.
+- `503`: fila de processamento CSV cheia ou serviço CSV indisponível.
 
 ## ⚙️ Variáveis e Configurações
 
