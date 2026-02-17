@@ -4,6 +4,7 @@ import (
 	"opportunities/internal/schemas"
 
 	"github.com/stretchr/testify/mock"
+	"gorm.io/gorm"
 )
 
 type OpeningRepositoryMock struct {
@@ -13,6 +14,20 @@ type OpeningRepositoryMock struct {
 func (m *OpeningRepositoryMock) Create(opening *schemas.Openings) error {
 	args := m.Called(opening)
 	return args.Error(0)
+}
+
+func (m *OpeningRepositoryMock) CreateWithTx(tx *gorm.DB, opening *schemas.Openings) error {
+	args := m.Called(tx, opening)
+	return args.Error(0)
+}
+
+func (m *OpeningRepositoryMock) BeginTx() (*gorm.DB, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*gorm.DB), args.Error(1)
 }
 
 func (m *OpeningRepositoryMock) Get(id string) (schemas.Openings, error) {

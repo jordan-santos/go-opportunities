@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"opportunities/config"
 	_ "opportunities/docs"
+	"opportunities/internal/messaging"
+	"opportunities/internal/repository"
 	"opportunities/internal/router"
+	"opportunities/internal/service"
 )
 
 // @title Opportunities API
@@ -25,6 +29,17 @@ func main() {
 	}
 
 	db := config.GetSQLite()
+	repo := repository.New(db)
+	kafkaConfig := config.LoadKafkaConfig()
 
-	router.Initialize(db)
+	feedbackProducer := messaging.NewKafkaFeedbackProducer(messaging.KafkaProducerConfig{
+		Brokers:  kafkaConfig.Brokers,
+		Topic:    kafkaConfig.Topic,
+		ClientID: kafkaConfig.ClientID,
+	})
+
+	csvService := service.NewOpeningCSVService(repo, feedbackProducer, 100)
+	csvService.Start(context.Background())
+
+	router.Initialize(db, csvService)
 }
